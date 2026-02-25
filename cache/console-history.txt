@@ -1,0 +1,6 @@
+await todo.getTasks();
+await todo.addTask("Build Web3 DApp");
+const todo = await Todo.attach(address);
+const Todo = await ethers.getContractFactory("Todo");
+const address = "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0";
+const address = 0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0
