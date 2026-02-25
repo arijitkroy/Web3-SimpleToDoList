@@ -36,6 +36,42 @@
       "artifacts": [
         "Todo"
       ]
+    },
+    "D:\\CollabGithub\\Web3-SimpleToDoList\\contracts\\todo.sol": {
+      "lastModificationDate": 1772034167702,
+      "contentHash": "d800fb2cfdba1207529ada6b255579b2",
+      "sourceName": "contracts/todo.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "Todo"
+      ]
     }
   }
 }
