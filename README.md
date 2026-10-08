@@ -6,6 +6,14 @@ A React and Solidity todo list that stores each wallet's tasks on Ethereum Sepol
 
 [Open BlockMemo on Vercel](https://blockmemo.vercel.app/). Connect MetaMask on Sepolia to use the shared deployed contract. Users do not need to deploy a contract or enter its address.
 
+## Core highlights
+
+- Create, edit, complete, and delete tasks stored on Ethereum Sepolia.
+- Keep each wallet's tasks separate through the smart contract.
+- Connect with MetaMask; users approve and pay for their own transactions with Sepolia test ETH.
+- Use the shared Remix deployment so Vercel visitors can start without deploying a contract.
+- Run as a React app locally or host it on Vercel.
+
 ## Run locally
 
 ```powershell
