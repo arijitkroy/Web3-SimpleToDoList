@@ -76,6 +76,17 @@ function App() {
   const [editingId, setEditingId] = useState(null);
   const [editingText, setEditingText] = useState("");
   const [error, setError] = useState("");
+  const [transactionHash, setTransactionHash] = useState("");
+
+  function transactionErrorMessage(err) {
+    if (err.code === 4001 || err.code === "ACTION_REJECTED") {
+      return "Transaction was rejected in MetaMask.";
+    }
+    if (err.code === "INSUFFICIENT_FUNDS") {
+      return "This wallet needs Sepolia ETH to pay the transaction gas fee.";
+    }
+    return err.shortMessage || err.reason || err.message || "Transaction failed. Check MetaMask and try again.";
+  }
 
   async function connectWallet() {
     if (!window.ethereum) {
@@ -154,19 +165,31 @@ function App() {
   }
 
   async function addTask() {
-    if (!input.trim()) return;
+    if (!input.trim() || !contract) return;
     setLoading(true);
     setLoadingMsg("Sending transaction…");
+    setError("");
+    setTransactionHash("");
     try {
       const tx = await contract.addTask(input.trim());
       setLoadingMsg("Waiting for confirmation…");
-      await tx.wait();
+      const receipt = await tx.wait();
+      if (!receipt || receipt.status !== 1) {
+        throw new Error("The transaction was mined but did not succeed.");
+      }
+      setTransactionHash(tx.hash);
       setInput("");
-      await loadTasks(contract);
+      try {
+        await loadTasks(contract);
+      } catch (refreshError) {
+        setError("The task was confirmed on Sepolia, but the list could not refresh. Reload the page to see it.");
+      }
     } catch (err) {
       console.error(err);
+      setError(transactionErrorMessage(err));
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }
 
   async function toggleTask(id) {
@@ -343,6 +366,14 @@ function App() {
               </button>
             </div>
           </div>
+          {transactionHash && (
+            <p className="metamask-hint" role="status">
+              Task confirmed on Sepolia. MetaMask may route smart-account transactions through its delegation manager. {" "}
+              <a href={`https://sepolia.etherscan.io/tx/${transactionHash}`} target="_blank" rel="noreferrer">
+                View transaction
+              </a>
+            </p>
+          )}
 
           {/* Task List */}
           {activeTasks.length > 0 ? (
