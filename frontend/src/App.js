@@ -68,6 +68,7 @@ function formatTimestamp(ts) {
 function App() {
   const [account, setAccount] = useState(null);
   const [contract, setContract] = useState(null);
+  const [contractAddress, setContractAddress] = useState(CONTRACT_ADDRESS);
   const [tasks, setTasks] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -113,7 +114,6 @@ function App() {
       const signer = await provider.getSigner();
       const address = await signer.getAddress();
       setAccount(address);
-      const contractAddress = CONTRACT_ADDRESS;
       if (contractAddress) {
         setContract(new ethers.Contract(contractAddress, TodoArtifact.abi, signer));
       }
@@ -125,24 +125,25 @@ function App() {
     setLoading(false);
   }
 
-  async function deployContract() {
-    if (!window.ethereum) return;
+  async function connectContract() {
+    if (!window.ethereum || !account) return;
+    if (!ethers.isAddress(contractAddress)) {
+      setError("Enter a valid deployed Todo contract address.");
+      return;
+    }
     setLoading(true);
-    setLoadingMsg("Deploying Todo contract to Sepolia…");
+    setLoadingMsg("Connecting to Todo contract…");
     setError("");
     try {
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
-      const factory = new ethers.ContractFactory(TodoArtifact.abi, TodoArtifact.bytecode, signer);
-      const deployed = await factory.deploy();
-      setLoadingMsg("Waiting for deployment confirmation…");
-      await deployed.waitForDeployment();
-      const address = await deployed.getAddress();
-      window.localStorage.setItem("todoContractAddress", address);
-      setContract(deployed);
+      const todoContract = new ethers.Contract(contractAddress, TodoArtifact.abi, signer);
+      await todoContract.getTasks();
+      window.localStorage.setItem("todoContractAddress", contractAddress);
+      setContract(todoContract);
     } catch (err) {
       console.error(err);
-      setError(err.shortMessage || err.message || "Contract deployment failed.");
+      setError(err.shortMessage || "Could not connect to a Todo contract at that address on Sepolia.");
     }
     setLoading(false);
   }
@@ -284,9 +285,17 @@ function App() {
 
       {account && !contract && (
         <div className="connect-section">
-          <p className="metamask-hint">No Todo contract is configured for this app yet.</p>
-          <button className="connect-btn" onClick={deployContract} disabled={loading}>
-            Deploy Todo to Sepolia
+          <p className="metamask-hint">Paste the Todo contract address you deployed with Remix on Sepolia.</p>
+          <input
+            className="task-input"
+            value={contractAddress}
+            onChange={(event) => setContractAddress(event.target.value.trim())}
+            placeholder="0x... deployed Todo contract address"
+            aria-label="Todo contract address"
+            disabled={loading}
+          />
+          <button className="connect-btn" onClick={connectContract} disabled={loading || !contractAddress}>
+            Connect to Contract
           </button>
         </div>
       )}
