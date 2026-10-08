@@ -22,7 +22,7 @@ Sepolia test ETH is required to deploy the contract and send task transactions.
 
 Open the local URL shown by React, connect MetaMask on Sepolia, paste the deployed contract address, and select **Connect to Contract**. The address is saved in that browser's local storage.
 
-To use a previously deployed contract, copy `frontend/.env.example` to `frontend/.env` and set `REACT_APP_TODO_CONTRACT_ADDRESS`.
+The Remix deployment at `0x643cfb9C52c643BeFaBBD0f1234980bc2Fa20891` is configured as the default, so users do not deploy or enter an address. To point your own fork at another contract, copy `frontend/.env.example` to `frontend/.env` and set `REACT_APP_TODO_CONTRACT_ADDRESS`.
 
 ## Deploy the frontend to Vercel
 
@@ -33,7 +33,7 @@ npx vercel
 npx vercel --prod
 ```
 
-After deploying the contract with Remix, add `REACT_APP_TODO_CONTRACT_ADDRESS` as a Vercel project environment variable and redeploy. Or leave it unset and paste the address in the app after connecting MetaMask. Vercel does not need wallet secrets or an RPC key.
+The shared contract address is included as the default, so Vercel users only need MetaMask on Sepolia to connect and use it. For a fork with a different contract, set `REACT_APP_TODO_CONTRACT_ADDRESS` as a Vercel project environment variable and redeploy. Vercel does not need wallet secrets or an RPC key.
 
 ## Contract
 

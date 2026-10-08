@@ -5,7 +5,7 @@ import "./App.css";
 
 const SEPOLIA_CHAIN_ID = "0xaa36a7";
 const CONTRACT_ADDRESS = process.env.REACT_APP_TODO_CONTRACT_ADDRESS ||
-  window.localStorage.getItem("todoContractAddress") || "";
+  "0x643cfb9C52c643BeFaBBD0f1234980bc2Fa20891";
 
 /* ── Inline SVG Icons ────────────────────────────── */
 const Icons = {
