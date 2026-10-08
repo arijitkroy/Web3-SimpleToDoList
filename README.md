@@ -1,6 +1,10 @@
 # Web3 Todo DApp
 
-A React and Solidity todo list that stores each wallet's tasks on Ethereum Sepolia. Deploy the contract with Remix IDE, then connect the app to it with MetaMask.
+A React and Solidity todo list that stores each wallet's tasks on Ethereum Sepolia.
+
+## Live app
+
+[Open BlockMemo on Vercel](https://blockmemo.vercel.app/). Connect MetaMask on Sepolia to use the shared deployed contract. Users do not need to deploy a contract or enter its address.
 
 ## Run locally
 
@@ -10,7 +14,7 @@ npm ci
 npm start
 ```
 
-### Deploy the contract with Remix
+### Deploy your own contract with Remix (optional)
 
 1. Open `contracts/todo.sol` in Remix and compile it with Solidity **0.8.20**.
 2. In **Deploy & Run Transactions**, select **Injected Provider - MetaMask** and switch MetaMask to **Sepolia**.
@@ -18,11 +22,7 @@ npm start
 
 Sepolia test ETH is required to deploy the contract and send task transactions.
 
-### Connect the app
-
-Open the local URL shown by React, connect MetaMask on Sepolia, paste the deployed contract address, and select **Connect to Contract**. The address is saved in that browser's local storage.
-
-The Remix deployment at `0x643cfb9C52c643BeFaBBD0f1234980bc2Fa20891` is configured as the default, so users do not deploy or enter an address. To point your own fork at another contract, copy `frontend/.env.example` to `frontend/.env` and set `REACT_APP_TODO_CONTRACT_ADDRESS`.
+The shared Remix deployment at `0x643cfb9C52c643BeFaBBD0f1234980bc2Fa20891` is configured as the default. To use your own deployment in a local copy, copy `frontend/.env.example` to `frontend/.env` and set `REACT_APP_TODO_CONTRACT_ADDRESS`; connect MetaMask, enter the address if prompted, then choose **Connect to Contract**.
 
 ## Deploy the frontend to Vercel
 
