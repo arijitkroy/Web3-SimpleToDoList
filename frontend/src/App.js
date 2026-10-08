@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import { ethers } from "ethers";
-import TodoABI from "./TodoABI.json";
+import TodoArtifact from "./TodoArtifact.json";
 import "./App.css";
 
-const CONTRACT_ADDRESS = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+const SEPOLIA_CHAIN_ID = "0xaa36a7";
+const CONTRACT_ADDRESS = process.env.REACT_APP_TODO_CONTRACT_ADDRESS ||
+  window.localStorage.getItem("todoContractAddress") || "";
 
 /* ── Inline SVG Icons ────────────────────────────── */
 const Icons = {
@@ -72,6 +74,7 @@ function App() {
   const [loadingMsg, setLoadingMsg] = useState("");
   const [editingId, setEditingId] = useState(null);
   const [editingText, setEditingText] = useState("");
+  const [error, setError] = useState("");
 
   async function connectWallet() {
     if (!window.ethereum) {
@@ -82,59 +85,65 @@ function App() {
     setLoading(true);
     setLoadingMsg("Connecting wallet…");
 
-    const HARDHAT_CHAIN_ID = "0x7a69"; // 31337
-
     try {
-      await window.ethereum.request({
-        method: "wallet_switchEthereumChain",
-        params: [{ chainId: HARDHAT_CHAIN_ID }],
-      });
-    } catch (switchError) {
-      if (switchError.code === 4902) {
+      try {
+        await window.ethereum.request({
+          method: "wallet_switchEthereumChain",
+          params: [{ chainId: SEPOLIA_CHAIN_ID }],
+        });
+      } catch (switchError) {
+        if (switchError.code !== 4902) throw switchError;
         await window.ethereum.request({
           method: "wallet_addEthereumChain",
-          params: [
-            {
-              chainId: HARDHAT_CHAIN_ID,
-              chainName: "Hardhat Local",
-              rpcUrls: ["http://127.0.0.1:8545"],
-              nativeCurrency: {
-                name: "ETH",
-                symbol: "ETH",
-                decimals: 18,
-              },
-            },
-          ],
+          params: [{
+            chainId: SEPOLIA_CHAIN_ID,
+            chainName: "Sepolia",
+            rpcUrls: ["https://ethereum-sepolia-rpc.publicnode.com"],
+            blockExplorerUrls: ["https://sepolia.etherscan.io"],
+            nativeCurrency: { name: "Sepolia Ether", symbol: "ETH", decimals: 18 },
+          }],
         });
-      } else {
-        console.error(switchError);
-        setLoading(false);
-        return;
       }
+
+      const chainId = await window.ethereum.request({ method: "eth_chainId" });
+      if (chainId !== SEPOLIA_CHAIN_ID) throw new Error("Please select Sepolia in MetaMask.");
+
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      await provider.send("eth_requestAccounts", []);
+      const signer = await provider.getSigner();
+      const address = await signer.getAddress();
+      setAccount(address);
+      const contractAddress = CONTRACT_ADDRESS;
+      if (contractAddress) {
+        setContract(new ethers.Contract(contractAddress, TodoArtifact.abi, signer));
+      }
+      setError("");
+    } catch (err) {
+      console.error(err);
+      setError(err.message || "Could not connect to MetaMask.");
     }
+    setLoading(false);
+  }
 
-    const chainId = await window.ethereum.request({
-      method: "eth_chainId",
-    });
-
-    if (chainId !== HARDHAT_CHAIN_ID) {
-      alert("Wrong network selected");
-      setLoading(false);
-      return;
+  async function deployContract() {
+    if (!window.ethereum) return;
+    setLoading(true);
+    setLoadingMsg("Deploying Todo contract to Sepolia…");
+    setError("");
+    try {
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const factory = new ethers.ContractFactory(TodoArtifact.abi, TodoArtifact.bytecode, signer);
+      const deployed = await factory.deploy();
+      setLoadingMsg("Waiting for deployment confirmation…");
+      await deployed.waitForDeployment();
+      const address = await deployed.getAddress();
+      window.localStorage.setItem("todoContractAddress", address);
+      setContract(deployed);
+    } catch (err) {
+      console.error(err);
+      setError(err.shortMessage || err.message || "Contract deployment failed.");
     }
-
-    const provider = new ethers.BrowserProvider(window.ethereum);
-    await provider.send("eth_requestAccounts", []);
-    const signer = await provider.getSigner();
-
-    const todoContract = new ethers.Contract(
-      CONTRACT_ADDRESS,
-      TodoABI.abi,
-      signer
-    );
-
-    setAccount(await signer.getAddress());
-    setContract(todoContract);
     setLoading(false);
   }
 
@@ -269,12 +278,22 @@ function App() {
           >
             Connect Wallet
           </button>
-          <p className="metamask-hint">Requires MetaMask on Hardhat network</p>
+          <p className="metamask-hint">Connect MetaMask on Sepolia to get started</p>
         </div>
       )}
 
+      {account && !contract && (
+        <div className="connect-section">
+          <p className="metamask-hint">No Todo contract is configured for this app yet.</p>
+          <button className="connect-btn" onClick={deployContract} disabled={loading}>
+            Deploy Todo to Sepolia
+          </button>
+        </div>
+      )}
+      {error && <p className="metamask-hint" role="alert">{error}</p>}
+
       {/* Main Content (after connection) */}
-      {account && (
+      {account && contract && (
         <>
           {/* Stats */}
           {activeTasks.length > 0 && (

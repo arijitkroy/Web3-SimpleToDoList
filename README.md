@@ -1,286 +1,53 @@
 # Web3 Todo DApp
 
-A simple decentralized Todo List built using:
+A React and Solidity todo list that stores each wallet's tasks on Ethereum Sepolia. MetaMask connects, deploys the contract when needed, and signs task transactions.
 
-- Solidity
-- Hardhat
-- Ethers.js (v6)
-- React
-- MetaMask
+## Requirements
 
-This project demonstrates full-stack Web3 development using a local Hardhat blockchain.
+- Node.js 18 or newer
+- MetaMask with Sepolia enabled
+- Sepolia test ETH for deployment and task transactions
 
----
+## Run the app
 
-# Project Structure
-
-```
-ToDoList/
-│
-├── contracts/
-│   └── Todo.sol
-│
-├── scripts/
-│   └── deploy.js
-│
-├── frontend/
-│   └── React App
-│
-├── hardhat.config.js
-├── package.json
-└── README.md
-```
-
----
-
-# Features
-
-- Connect wallet using MetaMask
-- Add tasks (stored on-chain)
-- Toggle tasks
-- Fetch tasks per wallet
-- Local blockchain development with Hardhat
-
----
-
-# Prerequisites
-
-- Node.js (v18+ recommended)
-- MetaMask browser extension
-- Git (optional)
-
----
-
-# Backend Setup (Hardhat)
-
-## 1️. Install Dependencies
-
-```bash
+```powershell
 npm install
-```
-
-If setting up from scratch:
-
-```bash
-npm init -y
-npm install --save-dev hardhat@^2.22.0
-npm install --save-dev @nomicfoundation/hardhat-toolbox
-```
-
----
-
-## 2️. Compile Smart Contract
-
-```bash
-npx hardhat compile
-```
-
----
-
-## 3️. Start Local Blockchain
-
-```bash
-npx hardhat node
-```
-
-This starts a local Ethereum network at:
-
-```
-http://127.0.0.1:8545
-Chain ID: 31337
-```
-
----
-
-## 4️. Deploy Contract
-
-Open a new terminal:
-
-```bash
-npx hardhat run scripts/deploy.js --network localhost
-```
-
-You will get:
-
-```
-Todo deployed to: 0x...
-```
-
-Copy this address.
-
----
-
-# MetaMask Setup
-
-## 1️. Add Hardhat Network
-
-Network Name: Hardhat Local  
-RPC URL: http://127.0.0.1:8545  
-Chain ID: 31337  
-Currency Symbol: ETH  
-
-## 2️. Import Hardhat Account
-
-Copy one private key from the Hardhat node terminal and import it into MetaMask.
-
-You should see 10,000 ETH.
-
----
-
-# Frontend Setup (React)
-
-Navigate to frontend:
-
-```bash
 cd frontend
 npm install
 npm start
 ```
 
----
+Open the local URL shown by React, select **Connect Wallet**, and approve the Sepolia network/account in MetaMask. If the contract has not been deployed for this app, choose **Deploy Todo to Sepolia** and confirm the deployment transaction. The address is saved in this browser's local storage. You can also set `REACT_APP_TODO_CONTRACT_ADDRESS` in `frontend/.env` to use a known deployment address.
 
-## Update Contract Address
+## Deploy the frontend to Vercel
 
-Inside:
+Import this repository into Vercel. The root `vercel.json` installs the frontend dependencies, builds the React app from `frontend`, and publishes `frontend/build`. You can also deploy from the repository root with the Vercel CLI:
 
-```
-frontend/src/App.js
-```
-
-Replace:
-
-```js
-const CONTRACT_ADDRESS = "PASTE_DEPLOYED_ADDRESS";
+```powershell
+npx vercel
+npx vercel --prod
 ```
 
-With your actual deployed contract address.
+If you have already deployed the Todo contract, add `REACT_APP_TODO_CONTRACT_ADDRESS` as a Vercel project environment variable and redeploy. Otherwise, connect MetaMask on the deployed site and deploy the contract through the app. Contract deployment and task transactions are signed in the user's wallet; Vercel does not need wallet secrets or an RPC key.
 
----
+## Deploy using Hardhat (optional)
 
-## Copy ABI
+The app's deploy button deploys through MetaMask. For command-line deployment, configure a Sepolia RPC endpoint and a dedicated test wallet key in the root `.env`:
 
-Copy ABI from:
-
-```
-artifacts/contracts/Todo.sol/Todo.json
-```
-
-Paste into:
-
-```
-frontend/src/TodoABI.json
+```env
+SEPOLIA_RPC_URL=https://your-sepolia-rpc-url
+DEPLOYER_PRIVATE_KEY=0xyour_test_wallet_private_key
 ```
 
----
+Keep `.env` private and never commit a wallet key. Then run:
 
-# Network Forcing (Important)
-
-The app programmatically forces MetaMask to switch to:
-
-```
-Chain ID: 31337 (0x7a69)
+```powershell
+npx hardhat compile
+npx hardhat run scripts/deploy.js --network sepolia
 ```
 
-This prevents accidental interaction with Sepolia or Mainnet.
+Set the printed address as `REACT_APP_TODO_CONTRACT_ADDRESS` in `frontend/.env` if you want the app to use that deployment. The browser deployment flow does not need an RPC key or private key.
 
----
+## Contract
 
-# Smart Contract Overview
-
-```solidity
-struct Task {
-    uint256 id;
-    string content;
-    bool completed;
-    uint256 createdAt;
-}
-```
-
-Each wallet has its own task list:
-
-```
-mapping(address => Task[]) private tasks;
-```
-
-Core functions:
-
-- `addTask(string)`
-- `toggleTask(uint256)`
-- `getTasks()`
-
----
-
-# How It Works
-
-1. User connects MetaMask
-2. DApp switches to Hardhat network
-3. User adds task
-4. Transaction is signed
-5. Task stored on-chain
-6. UI fetches updated state
-
----
-
-# Test via Hardhat Console
-
-```bash
-npx hardhat console --network localhost
-```
-
-```js
-const Todo = await ethers.getContractFactory("Todo");
-const todo = await Todo.attach("DEPLOYED_ADDRESS");
-
-await todo.addTask("Test Task");
-await todo.getTasks();
-```
-
----
-
-# Common Issues
-
-### 1. "Interaction with malicious address"
-→ Wrong network selected (likely Sepolia)
-
-Fix:
-- Switch to Hardhat Local
-- Ensure chainId = 0x7a69
-
-### 2. Contract address undefined
-→ Deployment script not updated for ethers v6
-
-Use:
-
-```js
-await todo.waitForDeployment();
-const address = await todo.getAddress();
-```
-
-### 3. Tasks not updating
-→ Ensure `await tx.wait()` is used
-
----
-
-# Next Improvements
-
-- Add loading indicators
-- Add task deletion
-- Improve UI with Tailwind
-- Deploy to Sepolia
-- Add tests
-- Optimize gas usage
-
----
-
-# Tech Stack Versions
-
-- Hardhat 2.x
-- Ethers 6.x
-- Solidity 0.8.20
-- React 18+
-
----
-
-# License
-
-MIT
+`contracts/todo.sol` keeps tasks separately for each wallet. It supports adding, editing, completing, and deleting tasks. Deleted tasks remain on chain and are hidden by the UI.
