@@ -258,7 +258,7 @@ function App() {
       {/* Header */}
       <header className="app-header">
         <div className="app-logo">{Icons.chain}</div>
-        <h1 className="app-title">Web3 Todo</h1>
+        <h1 className="app-title">BlockMemo</h1>
         <p className="app-subtitle">Your tasks, on-chain & unstoppable</p>
 
         {account && (

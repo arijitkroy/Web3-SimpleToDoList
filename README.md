@@ -1,4 +1,4 @@
-# Web3 Todo DApp
+# BlockMemo
 
 A React and Solidity todo list that stores each wallet's tasks on Ethereum Sepolia.
 
